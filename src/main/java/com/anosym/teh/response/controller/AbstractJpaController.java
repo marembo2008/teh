@@ -9,6 +9,8 @@ import com.anosym.teh.response.controller.exceptions.NonexistentEntityException;
 import com.anosym.teh.response.controller.exceptions.PreexistingEntityException;
 import com.anosym.utilities.ClassUtils;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Id;
@@ -115,4 +117,7 @@ public abstract class AbstractJpaController<T> {
         }
     }
 
+    protected void log(Throwable e) {
+        Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+    }
 }

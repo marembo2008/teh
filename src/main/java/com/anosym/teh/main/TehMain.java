@@ -13,8 +13,10 @@ import com.anosym.teh.request.auth.otp.OTPSendRequest;
 import com.anosym.teh.request.auth.otp.OTPVerifyRequest;
 import com.anosym.teh.request.marketdata.SecurityInfoRequest;
 import com.anosym.teh.request.scrip.ScripSearchOnTextAndExchangeRequest;
+import com.anosym.teh.response.ADXContract;
 import com.anosym.teh.response.Response;
 import com.anosym.teh.response.auth.LoginResponse;
+import com.anosym.teh.response.controller.ADXContractJpaController;
 import com.anosym.teh.response.marketdata.SecurityInfo;
 import com.anosym.teh.response.marketdata.SecurityInfoResponse;
 import com.anosym.teh.response.marketdata.controller.SecurityInfoJpaController;
@@ -38,7 +40,7 @@ public class TehMain {
     private static LoginResponse login;
 
     public static void main(String[] args) {
-        doMarketDataRequest();
+        doMarketDataRequestFromADXContracts();
     }
 
     public static boolean doDefaultLoginRequest() {
@@ -86,6 +88,35 @@ public class TehMain {
                                 }
                                 infos.clear();
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public static void doMarketDataRequestFromADXContracts() {
+        if (doDefaultLoginRequest()) {
+            //WE CAN ONLY HAVE TWO TYPES OF EXCHANGE FOR THIS TYPE OF REQUEST.
+//            Exchange[] scripExchanges = {Exchange.NSE, Exchange.BSE};
+            ADXContractJpaController adxcjc = new ADXContractJpaController();
+            List<ADXContract> adxcs = adxcjc.loadRequiredContracts();
+            System.out.println(adxcs);
+            //get the market data
+            for (ADXContract adxc : adxcs) {
+                SecurityInfoRequest sir = new SecurityInfoRequest(
+                        userId, login.getLoginInfo().getLoginToken(), Exchange.NSE.name(), adxc.getSymbol());
+                Response r1 = sir.doRequest();
+                System.out.println(r1);
+                if (r1 instanceof SecurityInfoResponse) {
+                    SecurityInfoResponse infoResponse = (SecurityInfoResponse) r1;
+                    SecurityInfo info = infoResponse.getSecurityInfo();
+                    if (info != null) {
+                        SecurityInfoJpaController sijc = new SecurityInfoJpaController();
+                        try {
+                            sijc.createOrUpdate(info);
+                        } catch (Exception ex) {
+                            Logger.getLogger(TehMain.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
                 }
