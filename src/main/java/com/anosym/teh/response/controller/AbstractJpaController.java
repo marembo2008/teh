@@ -22,102 +22,100 @@ import javax.persistence.Persistence;
  */
 public abstract class AbstractJpaController<T> {
 
-    private EntityManagerFactory emf;
-    private final Class<T> entityClass;
+  private EntityManagerFactory emf;
+  private final Class<T> entityClass;
 
-    protected AbstractJpaController(Class<T> entityClass) {
-        this.entityClass = entityClass;
+  protected AbstractJpaController(Class<T> entityClass) {
+    this.entityClass = entityClass;
+  }
+
+  public final EntityManager getEntityManager() {
+    if (emf == null) {
+      emf = Persistence.createEntityManagerFactory("com.anosym.teh_teh_jar_1.0-SNAPSHOTPU");
     }
+    return emf.createEntityManager();
+  }
 
-    public final EntityManager getEntityManager() {
-        if (emf == null) {
-            emf = Persistence.createEntityManagerFactory("com.anosym.teh_teh_jar_1.0-SNAPSHOTPU");
-        }
-        return emf.createEntityManager();
+  public T find(Object id) {
+    EntityManager em = getEntityManager();
+    try {
+      return em.find(entityClass, id);
+    } finally {
+      em.close();
     }
+  }
 
-    public T find(Object id) {
-        EntityManager em = getEntityManager();
-        try {
-            return em.find(entityClass, id);
-        } finally {
-            em.close();
-        }
+  public void createOrUpdate(T entity) throws Exception {
+    Object id = ClassUtils.getFieldValue(entity, Id.class);
+    if (id == null || find(id) == null) {
+      System.err.println("Creating......................");
+      create(entity);
+    } else {
+      System.err.println("Updating......................");
+      edit(entity);
     }
+  }
 
-    public void createOrUpdate(T entity) throws Exception {
+  public void createOrUpdate(List<T> entities) throws Exception {
+    EntityManager em = null;
+    try {
+      em = getEntityManager();
+      em.getTransaction().begin();
+      for (T entity : entities) {
         Object id = ClassUtils.getFieldValue(entity, Id.class);
         if (id != null) {
-            if (find(id) == null) {
-                System.err.println("Creating......................");
-                create(entity);
-            } else {
-                System.err.println("Updating......................");
-                edit(entity);
-            }
-        }
-    }
-
-    public void createOrUpdate(List<T> entities) throws Exception {
-        EntityManager em = null;
-        try {
-            em = getEntityManager();
-            em.getTransaction().begin();
-            for (T entity : entities) {
-                Object id = ClassUtils.getFieldValue(entity, Id.class);
-                if (id != null) {
-                    if (find(id) == null) {
-                        System.err.println("Creating......................");
-                        em.persist(entity);
-                    } else {
-                        System.err.println("Updating......................");
-                        em.merge(entity);
-                    }
-                }
-            }
-            em.getTransaction().commit();
-        } catch (Exception ex) {
-            throw ex;
-        } finally {
-            if (em != null) {
-                em.close();
-            }
-        }
-    }
-
-    public void create(T entity) throws PreexistingEntityException, Exception {
-        EntityManager em = null;
-        try {
-            em = getEntityManager();
-            em.getTransaction().begin();
+          if (find(id) == null) {
+            System.err.println("Creating......................");
             em.persist(entity);
-            em.getTransaction().commit();
-        } catch (Exception ex) {
-            throw ex;
-        } finally {
-            if (em != null) {
-                em.close();
-            }
-        }
-    }
-
-    public void edit(T entity) throws NonexistentEntityException, Exception {
-        EntityManager em = null;
-        try {
-            em = getEntityManager();
-            em.getTransaction().begin();
+          } else {
+            System.err.println("Updating......................");
             em.merge(entity);
-            em.getTransaction().commit();
-        } catch (Exception ex) {
-            throw ex;
-        } finally {
-            if (em != null) {
-                em.close();
-            }
+          }
         }
+      }
+      em.getTransaction().commit();
+    } catch (Exception ex) {
+      throw ex;
+    } finally {
+      if (em != null) {
+        em.close();
+      }
     }
+  }
 
-    protected void log(Throwable e) {
-        Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+  public void create(T entity) throws PreexistingEntityException, Exception {
+    EntityManager em = null;
+    try {
+      em = getEntityManager();
+      em.getTransaction().begin();
+      em.persist(entity);
+      em.getTransaction().commit();
+    } catch (Exception ex) {
+      throw ex;
+    } finally {
+      if (em != null) {
+        em.close();
+      }
     }
+  }
+
+  public void edit(T entity) throws NonexistentEntityException, Exception {
+    EntityManager em = null;
+    try {
+      em = getEntityManager();
+      em.getTransaction().begin();
+      em.merge(entity);
+      em.getTransaction().commit();
+    } catch (Exception ex) {
+      throw ex;
+    } finally {
+      if (em != null) {
+        em.close();
+      }
+    }
+  }
+
+  protected void log(Throwable e) {
+    Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+  }
 }

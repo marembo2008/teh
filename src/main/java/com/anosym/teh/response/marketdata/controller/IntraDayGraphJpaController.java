@@ -6,8 +6,7 @@ package com.anosym.teh.response.marketdata.controller;
 
 import com.anosym.teh.response.controller.AbstractJpaController;
 import com.anosym.teh.response.controller.exceptions.NonexistentEntityException;
-import com.anosym.teh.response.marketdata.IntraDayScripInfo;
-import com.anosym.teh.response.marketdata.IntraDayScripInfo;
+import com.anosym.teh.response.marketdata.Chart;
 import java.io.Serializable;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -20,10 +19,10 @@ import javax.persistence.criteria.Root;
  *
  * @author marembo
  */
-public class IntraDayGraphJpaController extends AbstractJpaController<IntraDayScripInfo> implements Serializable {
+public class IntraDayGraphJpaController extends AbstractJpaController<Chart> implements Serializable {
 
     public IntraDayGraphJpaController() {
-        super(IntraDayScripInfo.class);
+        super(Chart.class);
     }
 
     public void destroy(String id) throws NonexistentEntityException {
@@ -31,12 +30,12 @@ public class IntraDayGraphJpaController extends AbstractJpaController<IntraDaySc
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            IntraDayScripInfo securityInfo;
+            Chart securityInfo;
             try {
-                securityInfo = em.getReference(IntraDayScripInfo.class, id);
+                securityInfo = em.getReference(Chart.class, id);
                 securityInfo.getId();
             } catch (EntityNotFoundException enfe) {
-                throw new NonexistentEntityException("The IntraDayScripInfo with id " + id + " no longer exists.", enfe);
+                throw new NonexistentEntityException("The Chart with id " + id + " no longer exists.", enfe);
             }
             em.remove(securityInfo);
             em.getTransaction().commit();
@@ -47,19 +46,19 @@ public class IntraDayGraphJpaController extends AbstractJpaController<IntraDaySc
         }
     }
 
-    public List<IntraDayScripInfo> findIntraDayScripInfoEntities() {
-        return findIntraDayScripInfoEntities(true, -1, -1);
+    public List<Chart> findChartEntities() {
+        return findChartEntities(true, -1, -1);
     }
 
-    public List<IntraDayScripInfo> findIntraDayScripInfoEntities(int maxResults, int firstResult) {
-        return findIntraDayScripInfoEntities(false, maxResults, firstResult);
+    public List<Chart> findChartEntities(int maxResults, int firstResult) {
+        return findChartEntities(false, maxResults, firstResult);
     }
 
-    private List<IntraDayScripInfo> findIntraDayScripInfoEntities(boolean all, int maxResults, int firstResult) {
+    private List<Chart> findChartEntities(boolean all, int maxResults, int firstResult) {
         EntityManager em = getEntityManager();
         try {
             CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
-            cq.select(cq.from(IntraDayScripInfo.class));
+            cq.select(cq.from(Chart.class));
             Query q = em.createQuery(cq);
             if (!all) {
                 q.setMaxResults(maxResults);
@@ -71,20 +70,20 @@ public class IntraDayGraphJpaController extends AbstractJpaController<IntraDaySc
         }
     }
 
-    public IntraDayScripInfo findIntraDayScripInfo(String id) {
+    public Chart findChart(String id) {
         EntityManager em = getEntityManager();
         try {
-            return em.find(IntraDayScripInfo.class, id);
+            return em.find(Chart.class, id);
         } finally {
             em.close();
         }
     }
 
-    public int getIntraDayScripInfoCount() {
+    public int getChartCount() {
         EntityManager em = getEntityManager();
         try {
             CriteriaQuery cq = em.getCriteriaBuilder().createQuery();
-            Root<IntraDayScripInfo> rt = cq.from(IntraDayScripInfo.class);
+            Root<Chart> rt = cq.from(Chart.class);
             cq.select(em.getCriteriaBuilder().count(rt));
             Query q = em.createQuery(cq);
             return ((Long) q.getSingleResult()).intValue();

@@ -11,6 +11,5 @@ package com.anosym.teh.request;
  */
 public enum Exchange {
 
-    NSE,
-    BSE;
+  CDS, MCX, NCDEX, NFO, bse_fo, NSE, BSE;
 }

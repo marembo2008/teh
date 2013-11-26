@@ -27,7 +27,7 @@ public class IntraDayGraphRequest extends PostRequest {
   public IntraDayGraphRequest(String userId, String token,
           String symbol, String exchange, String interval) {
     super("/XMLServlets/servlet/GetChart", userId, token);
-    addParameter("symbol", symbol);
+    addParameter("Symbol", symbol);
     addParameter("exchange", exchange);
     addParameter("interval", interval);
   }

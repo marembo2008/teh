@@ -5,6 +5,7 @@
  */
 package com.anosym.teh.response.auth;
 
+import com.anosym.teh.request.Exchange;
 import com.anosym.teh.response.Response;
 import com.anosym.teh.util.DateTimeConverter;
 import com.anosym.utilities.FormattedCalendar;
@@ -37,7 +38,7 @@ public class LoginResponse extends Response {
     private String guiSubscription;
     @Markup(name = "loginexchange")
     @ArrayParented(componentMarkup = "exchange")
-    private String[] loginExchange;
+    private Exchange[] loginExchange;
     @ArrayParented(componentMarkup = "product")
     @Markup(name = "loginproducts")
     private String[] loginProducts;
@@ -109,11 +110,11 @@ public class LoginResponse extends Response {
       this.guiSubscription = guiSubscription;
     }
 
-    public void setLoginExchange(String[] loginExchange) {
+    public void setLoginExchange(Exchange[] loginExchange) {
       this.loginExchange = loginExchange;
     }
 
-    public String[] getLoginExchange() {
+    public Exchange[] getLoginExchange() {
       return loginExchange;
     }
 

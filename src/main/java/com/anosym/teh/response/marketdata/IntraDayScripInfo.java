@@ -32,7 +32,7 @@ public class IntraDayScripInfo implements Serializable {
     @Markup(name = "time")
     @Temporal(javax.persistence.TemporalType.DATE)
     @Converter(value = CalendarConverter.class, params = {
-        @ConverterParam(key = CalendarConverter.CALENDAR_FORMAT_PARAM, value = {"d MM yyyy", "d MMM, yyyy"})})
+        @ConverterParam(key = CalendarConverter.CALENDAR_FORMAT_PARAM, value = {"HH:mm:ss"})})
     private Calendar scripTime;
     @Markup(name = "ltqty")
     private int lastTradedQuantity;

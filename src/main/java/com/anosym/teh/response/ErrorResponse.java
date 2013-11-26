@@ -12,7 +12,7 @@ import com.anosym.vjax.annotations.Markup;
  */
 public class ErrorResponse extends Response {
 
-  @Markup(name = "omneerror")
+  @Markup(name = "omneerror", optionalNames = {"error"})
   private String errorMessage;
 
   public String getErrorMessage() {

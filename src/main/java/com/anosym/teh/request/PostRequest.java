@@ -89,7 +89,7 @@ public abstract class PostRequest {
   protected abstract Response getResponse(String response);
 
   private Response getResponse0(String response) {
-    if (response.contains("<omneerror>")) {
+    if (response.contains("<omneerror>") || response.contains("<error>")) {
       return processResponse(response, ErrorResponse.class);
     }
     return getResponse(response);
