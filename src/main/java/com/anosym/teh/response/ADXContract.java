@@ -18,7 +18,7 @@ import javax.persistence.Table;
  * @author marembo
  */
 @Entity
-@Table(name = "ADXContracts")
+@Table(name = "ADXContracts_OLD")
 @NamedQueries({
     @NamedQuery(name = "ADXContract.load_adxcontracs",
             query = "SELECT a FROM ADXContract a WHERE a.flag = :flag")
