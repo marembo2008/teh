@@ -5,7 +5,7 @@
 package com.anosym.teh.response.order;
 
 import com.anosym.teh.response.Response;
-import com.anosym.teh.response.order.util.PriceConverter;
+import com.anosym.teh.response.util.PriceConverter;
 import com.anosym.teh.util.DateTimeConverter;
 import com.anosym.teh.util.IsoLongMonthDateTimeConverter;
 import com.anosym.vjax.annotations.Markup;

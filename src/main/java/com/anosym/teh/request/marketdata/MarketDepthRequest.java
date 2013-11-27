@@ -4,6 +4,7 @@
  */
 package com.anosym.teh.request.marketdata;
 
+import com.anosym.teh.request.Exchange;
 import com.anosym.teh.request.PostRequest;
 import com.anosym.teh.response.Response;
 import com.anosym.teh.response.marketdata.MarketDepthResponse;
@@ -14,7 +15,7 @@ import com.anosym.teh.response.marketdata.MarketDepthResponse;
  */
 public class MarketDepthRequest extends PostRequest {
 
-  public MarketDepthRequest(String userId, String token, String exchange, String symbol) {
+  public MarketDepthRequest(String userId, String token, Exchange exchange, String symbol) {
     super("/XMLServlets/servlet/MktPicture", userId, token);
     addParameter("symbol", symbol);
     addParameter("exhange", exchange);

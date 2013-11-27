@@ -5,7 +5,7 @@
 package com.anosym.teh.response.marketwatch;
 
 import com.anosym.teh.response.Response;
-import com.anosym.teh.response.order.util.PriceConverter;
+import com.anosym.teh.response.util.PriceConverter;
 import com.anosym.vjax.converter.v3.impl.CalendarConverter;
 import com.anosym.vjax.annotations.Markup;
 import com.anosym.vjax.annotations.v3.ArrayParented;

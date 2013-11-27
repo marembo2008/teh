@@ -34,7 +34,7 @@ public class SecurityInfoRequestTest {
             + "<omnereports>\n"
             + "<securityinfo>No data available for selected scrip</securityinfo>\n"
             + "</omnereports>";
-    SecurityInfoResponse sir = (SecurityInfoResponse) new SecurityInfoRequest(xml, xml, xml, xml).getResponse(xml);
+    SecurityInfoResponse sir = (SecurityInfoResponse) new SecurityInfoRequest(xml, xml, null, xml).getResponse(xml);
     String expected = "No data available for selected scrip";
     String actual = sir.getSecurityInfoMessage();
     assertEquals(expected, actual);
@@ -101,7 +101,7 @@ public class SecurityInfoRequestTest {
             + "<exposuremargin>NA</exposuremargin>\n"
             + "</securityinfo>\n"
             + "</omnereports>";
-    SecurityInfoResponse sir = (SecurityInfoResponse) new SecurityInfoRequest(xml, xml, xml, xml).getResponse(xml);
+    SecurityInfoResponse sir = (SecurityInfoResponse) new SecurityInfoRequest(null, null, null, null).getResponse(xml);
     assertNotNull(sir.getSecurityInfo());
     SecurityInfo si = sir.getSecurityInfo();
     String expected = "779.35-519.60";

@@ -32,6 +32,7 @@ import com.anosym.teh.response.scrip.controller.ScripJpaController;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,14 +46,14 @@ import java.util.logging.Logger;
 public class TehMain {
 
     public static final String userId = "INV32-CHND";
-    public static final String password = "master12"; //"a123456"
+    public static final String password =/* "master12"; /*/ "a123456";
     public static final String ip = "192.168.0.43";
     public static final String token = "8599433655";
     public static final String otpPassword = "";
     private static LoginResponse login;
 
     public static void main(String[] args) {
-        //        doMarketDataRequest();
+//        doMarketDataRequest();
         doGetQuoteWithMarketDepth();
     }
 
@@ -73,11 +74,12 @@ public class TehMain {
         if (doDefaultLoginRequest()) {
             SecurityInfoJpaController sijc = new SecurityInfoJpaController();
             ScripJpaController sjc = new ScripJpaController();
+            LoginInfo loginInfo = login.getLoginInfo();
             //WE CAN ONLY HAVE TWO TYPES OF EXCHANGE FOR THIS TYPE OF REQUEST.
             Exchange[] scripExchanges = {Exchange.NSE, Exchange.BSE};
             for (Exchange e : scripExchanges) {
                 ScripSearchOnTextAndExchangeRequest request = new ScripSearchOnTextAndExchangeRequest(
-                        userId, login.getLoginInfo().getLoginToken(), null, e, null);
+                        loginInfo.getLoginId(), loginInfo.getLoginToken(), null, e, null);
                 Response r = request.doRequest();
                 System.out.println(r);
                 if (r instanceof ScripDataResponse) {
@@ -87,9 +89,9 @@ public class TehMain {
                         try {
                             sjc.createOrUpdate(sd);
                             SecurityInfoRequest sir = new SecurityInfoRequest(
-                                    login.getLoginInfo().getLoginId(),
-                                    login.getLoginInfo().getLoginToken(),
-                                    e.name(),
+                                    loginInfo.getLoginId(),
+                                    loginInfo.getLoginToken(),
+                                    e,
                                     sd.getSymbol());
                             Response r1 = sir.doRequest();
                             System.out.println(r1);
@@ -121,7 +123,9 @@ public class TehMain {
                 adxc.setSymbol(tsd[1]);
                 l.add(adxc);
             }
-        } catch (Exception ex) {
+        } catch (IOException ex) {
+            Logger.getLogger(TehMain.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NumberFormatException ex) {
             Logger.getLogger(TehMain.class.getName()).log(Level.SEVERE, null, ex);
         }
         return l;
@@ -137,7 +141,7 @@ public class TehMain {
             //get the market data
             for (ADXContract adxc : adxcs) {
                 SecurityInfoRequest sir = new SecurityInfoRequest(
-                        userId, login.getLoginInfo().getLoginToken(), Exchange.NSE.name(), adxc.getSymbol());
+                        userId, login.getLoginInfo().getLoginToken(), Exchange.NSE, adxc.getSymbol());
                 Response r1 = sir.doRequest();
                 System.out.println(r1);
                 if (r1 instanceof SecurityInfoResponse) {
@@ -156,37 +160,81 @@ public class TehMain {
         }
     }
 
-    public static void doGetQuoteWithMarketDepth() {
+    public static Scrip[] getScrips() {
         if (doDefaultLoginRequest()) {
             LoginInfo info = login.getLoginInfo();
-            SecurityInfoJpaController sijc = new SecurityInfoJpaController();
-            ScripJpaController sjc = new ScripJpaController();
-            //WE CAN ONLY HAVE TWO TYPES OF EXCHANGE FOR THIS TYPE OF REQUEST.
-            for (Exchange e : Exchange.values()) {
-                ScripSearchOnTextAndExchangeRequest request = new ScripSearchOnTextAndExchangeRequest(
-                        userId, login.getLoginInfo().getLoginToken(), null, e, null);
-                Response r = request.doRequest();
-                System.out.println(r);
-                if (r instanceof ScripDataResponse) {
-                    ScripDataResponse response = (ScripDataResponse) r;
-                    //get the market data
-                    for (Scrip sd : response.getScrips()) {
-                        try {
-                            sjc.createOrUpdate(sd);
-                            MarketDepthRequest mdr = new MarketDepthRequest(
-                                    info.getLoginId(),
-                                    info.getLoginToken(),
-                                    Exchange.NSE.name(),
-                                    sd.getSymbol());
-                            Response mdr_ = mdr.doRequest();
-                            System.out.println(mdr_);
-                            if (mdr_ instanceof MarketDepthResponse) {
-                                MarketDepthResponse mdResponse = (MarketDepthResponse) mdr_;
-                            }
-                        } catch (Exception ex) {
+            ScripSearchOnTextAndExchangeRequest request = new ScripSearchOnTextAndExchangeRequest(
+                    info.getLoginId(), info.getLoginToken(), null, Exchange.MCX, null);
+            Response r = request.doRequest();
+            System.out.println(r);
+            if (r instanceof ScripDataResponse) {
+                return ((ScripDataResponse) r).getScrips();
+            }
+        }
+        return null;
+    }
 
-                        }
+    public static SecurityInfo getSecurityInfo(Scrip scrip) {
+        LoginInfo info = login.getLoginInfo();
+        SecurityInfoRequest sir = new SecurityInfoRequest(
+                info.getLoginId(),
+                info.getLoginToken(),
+                Exchange.MCX,
+                scrip.getSymbol());
+        Response r1 = sir.doRequest();
+        System.out.println(r1);
+        if (r1 instanceof SecurityInfoResponse) {
+            SecurityInfoResponse infoResponse = (SecurityInfoResponse) r1;
+            return infoResponse.getSecurityInfo();
+        }
+        return null;
+    }
+
+    public static void doGetQuoteWithMarketDepth() {
+        Scrip[] scrips = getScrips();
+        if (scrips != null) {
+            LoginInfo info = login.getLoginInfo();
+            for (Scrip sd : scrips) {
+                try {
+                    SecurityInfo si = getSecurityInfo(sd);
+                    MarketDepthRequest mdr = new MarketDepthRequest(
+                            info.getLoginId(),
+                            info.getLoginToken(),
+                            null,
+                            si.getSymbol());
+                    Response mdr_ = mdr.doRequest();
+                    System.out.println(mdr_);
+                    if (mdr_ instanceof MarketDepthResponse) {
+                        MarketDepthResponse mdResponse = (MarketDepthResponse) mdr_;
                     }
+                } catch (Exception ex) {
+
+                }
+            }
+        }
+
+    }
+
+    public static void doGetQuoteWithMarketDepth_fromADXContracts() {
+        List<ADXContract> adxcs = loadADXContracts();
+        if (adxcs != null && doDefaultLoginRequest()) {
+            ScripJpaController sjc = new ScripJpaController();
+            LoginInfo info = login.getLoginInfo();
+            for (ADXContract sd : adxcs) {
+                try {
+//                    sjc.createOrUpdate(sd);
+                    MarketDepthRequest mdr = new MarketDepthRequest(
+                            info.getLoginId(),
+                            info.getLoginToken(),
+                            Exchange.MCX,
+                            sd.getTokenId() + "");
+                    Response mdr_ = mdr.doRequest();
+                    System.out.println(mdr_);
+                    if (mdr_ instanceof MarketDepthResponse) {
+                        MarketDepthResponse mdResponse = (MarketDepthResponse) mdr_;
+                    }
+                } catch (Exception ex) {
+
                 }
             }
         }

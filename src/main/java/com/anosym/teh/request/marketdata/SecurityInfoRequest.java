@@ -4,6 +4,7 @@
  */
 package com.anosym.teh.request.marketdata;
 
+import com.anosym.teh.request.Exchange;
 import com.anosym.teh.request.PostRequest;
 import com.anosym.teh.response.Response;
 import com.anosym.teh.response.marketdata.SecurityInfoResponse;
@@ -14,14 +15,14 @@ import com.anosym.teh.response.marketdata.SecurityInfoResponse;
  */
 public class SecurityInfoRequest extends PostRequest {
 
-  public SecurityInfoRequest(String userId, String token, String exchange, String symbol) {
-    super("/XMLServlets/servlet/SecurityInfo", userId, token);
-    addParameter("symbol", symbol);
-    addParameter("exchange", exchange);
-  }
+    public SecurityInfoRequest(String userId, String token, Exchange exchange, String symbol) {
+        super("/XMLServlets/servlet/SecurityInfo", userId, token);
+        addParameter("symbol", symbol);
+        addParameter("exchange", exchange);
+    }
 
-  @Override
-  protected Response getResponse(String response) {
-    return processResponse(response, SecurityInfoResponse.class);
-  }
+    @Override
+    protected Response getResponse(String response) {
+        return processResponse(response, SecurityInfoResponse.class);
+    }
 }

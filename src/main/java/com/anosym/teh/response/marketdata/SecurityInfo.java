@@ -4,7 +4,8 @@
  */
 package com.anosym.teh.response.marketdata;
 
-import com.anosym.teh.response.order.util.PriceConverter;
+import com.anosym.teh.request.Exchange;
+import com.anosym.teh.response.util.PriceConverter;
 import com.anosym.utilities.FormattedCalendar;
 import com.anosym.vjax.annotations.Markup;
 import com.anosym.vjax.annotations.v3.Converter;
@@ -34,7 +35,7 @@ public class SecurityInfo implements Serializable {
     @Markup(name = "instrumenttype")
     private String instrumentType;
     @Markup(name = "exchange")
-    private String exchange;
+    private Exchange exchange;
     @Markup(name = "issuestartdate")
     @Converter(value = CalendarConverter.class, params = {
         @ConverterParam(key = CalendarConverter.CALENDAR_FORMAT_PARAM, value = {"d MMM, yyyy", "d MMM yyyy"})})
@@ -224,11 +225,11 @@ public class SecurityInfo implements Serializable {
         this.instrumentType = instrumentType;
     }
 
-    public String getExchange() {
+    public Exchange getExchange() {
         return exchange;
     }
 
-    public void setExchange(String exchange) {
+    public void setExchange(Exchange exchange) {
         this.exchange = exchange;
     }
 

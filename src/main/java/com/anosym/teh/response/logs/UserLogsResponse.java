@@ -5,7 +5,7 @@
 package com.anosym.teh.response.logs;
 
 import com.anosym.teh.response.Response;
-import com.anosym.teh.response.order.util.PriceConverter;
+import com.anosym.teh.response.util.PriceConverter;
 import com.anosym.vjax.converter.v3.impl.CalendarConverter;
 import com.anosym.utilities.FormattedCalendar;
 import com.anosym.utilities.Utility;

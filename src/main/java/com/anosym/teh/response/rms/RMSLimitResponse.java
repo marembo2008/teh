@@ -5,7 +5,7 @@
 package com.anosym.teh.response.rms;
 
 import com.anosym.teh.response.Response;
-import com.anosym.teh.response.order.util.PriceConverter;
+import com.anosym.teh.response.util.PriceConverter;
 import com.anosym.vjax.annotations.Markup;
 import com.anosym.vjax.annotations.v3.Converter;
 import java.math.BigDecimal;
