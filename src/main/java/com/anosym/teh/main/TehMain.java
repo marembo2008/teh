@@ -45,7 +45,7 @@ import java.util.logging.Logger;
 public class TehMain {
 
     public static final String userId = "INV32-CHND";
-    public static final String password = "master12";
+    public static final String password = "master12"; //"a123456"
     public static final String ip = "192.168.0.43";
     public static final String token = "8599433655";
     public static final String otpPassword = "";
