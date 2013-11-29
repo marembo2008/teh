@@ -7,6 +7,7 @@
     <class>com.anosym.teh.response.ADXContract</class>
     <class>com.anosym.teh.response.marketdata.Chart</class>
     <class>com.anosym.teh.response.marketdata.IntraDayScripInfo</class>
+    <class>com.anosym.teh.response.marketdata.MarketDepth</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:sqlserver://49.50.64.239\TB:1433;databaseName=DirectTradeOther"/>
       <property name="javax.persistence.jdbc.password" value="qwerty#9999"/>

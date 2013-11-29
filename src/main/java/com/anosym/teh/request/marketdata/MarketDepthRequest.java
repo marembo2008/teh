@@ -18,7 +18,7 @@ public class MarketDepthRequest extends PostRequest {
   public MarketDepthRequest(String userId, String token, Exchange exchange, String symbol) {
     super("/XMLServlets/servlet/MktPicture", userId, token);
     addParameter("symbol", symbol);
-    addParameter("exhange", exchange);
+    addParameter("exchange", exchange);
   }
 
   @Override
