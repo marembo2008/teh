@@ -123,7 +123,7 @@ public class MarketDepthRequestTest {
     actual = mdr.getBestBuys()[2].getBestBuyPrice();
     assertEquals(expected, actual);
     Calendar expected_ = Calendar.getInstance();
-    expected_.setTimeInMillis(1310637830);
+    expected_.setTimeInMillis(1310637830000l);
     Calendar actual_ = mdr.getScripDetail().getLastTradedTime();
     assertEquals(expected_, actual_);
   }
