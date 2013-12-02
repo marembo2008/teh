@@ -31,12 +31,15 @@ import com.anosym.teh.response.marketdata.controller.SecurityInfoJpaController;
 import com.anosym.teh.response.scrip.Scrip;
 import com.anosym.teh.response.scrip.ScripDataResponse;
 import com.anosym.teh.response.scrip.controller.ScripJpaController;
+import com.anosym.utilities.cl.CommandLineArgument;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,19 +57,55 @@ public class TehMain {
     public static final String otpPassword = "";
     private static LoginResponse login;
     private static boolean requestdata = true;
+    private static Exchange[] exchanges;
+    private static String[] args;
+    private static volatile int last_updated_index;
 
     public static void main(String[] args) {
-//        doMarketDataRequest();
-        Thread t = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                while (requestdata) {
-                    doGetQuoteWithMarketDepth();
-                }
+        TehMain.args = args;
+        CommandLineArgument.init(args);
+        if (CommandLineArgument.hasParameterId("market")) {
+            String param = CommandLineArgument.clParameter("market");
+            String[] params = param.split(",");
+            exchanges = new Exchange[params.length];
+            for (int i = 0; i < params.length; i++) {
+                exchanges[i] = Exchange.valueOf(params[i].toUpperCase());
             }
-        });
-        t.start();
+            Thread t = new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    while (requestdata) {
+                        doGetQuoteWithMarketDepth();
+                    }
+                }
+            });
+            t.start();
+            new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    int last_updated = TehMain.last_updated_index;
+                    while (true) {
+                        synchronized (TehMain.class) {
+                            try {
+                                TehMain.class.wait(120000);
+                                if (last_updated == TehMain.last_updated_index) {
+                                    //we are hung
+                                    restartApplication(TehMain.args);
+                                } else {
+                                    last_updated = last_updated_index;
+                                }
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(TehMain.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    }
+                }
+            }).start();
+        } else {
+            System.out.println("Usage java -jar teh.jar --market=m1,m2,..");
+        }
 
     }
 
@@ -204,7 +243,7 @@ public class TehMain {
     }
 
     public static void doGetQuoteWithMarketDepth() {
-        Exchange[] exchanges = {Exchange.MCX, Exchange.NSE, Exchange.NCDEX};
+        exchanges = exchanges == null ? new Exchange[]{Exchange.MCX, Exchange.NSE, Exchange.NCDEX} : exchanges;
         for (Exchange exc : exchanges) {
             Scrip[] scrips = getScrips(exc);
             if (scrips != null) {
@@ -222,9 +261,12 @@ public class TehMain {
                         if (mdr_ instanceof MarketDepthResponse) {
                             MarketDepthResponse mdResponse = (MarketDepthResponse) mdr_;
                             MarketDepth md = mdResponse.getScripDetail();
-                            md.setBestBuys(mdResponse.getBestBuys());
-                            md.setBestSells(mdResponse.getBestSells());
-                            mdjc.createOrUpdate(mdResponse.getScripDetail());
+                            if (md.getLastTradedTime() != null && md.getLastTradedTime().get(Calendar.YEAR) > 2000) {
+                                md.setBestBuys(mdResponse.getBestBuys());
+                                md.setBestSells(mdResponse.getBestSells());
+                                mdjc.createOrUpdate(mdResponse.getScripDetail());
+                                last_updated_index++;
+                            }
                         }
                     } catch (Exception ex) {
                     }
@@ -316,5 +358,33 @@ public class TehMain {
         Response r = flr.doRequest();
         System.out.println(r);
         return r;
+    }
+
+    public static void restartApplication(String args[]) {
+        try {
+            final String javaBin = "java";
+            final File currentJar = new File(TehMain.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+
+            /* is it a jar file? */
+            if (!currentJar.getName().endsWith(".jar")) {
+                return;
+            }
+
+            /* Build command: java -jar application.jar */
+            final ArrayList<String> command = new ArrayList<String>();
+            command.add(javaBin);
+            command.add("-jar");
+            command.add(currentJar.getPath());
+            for (String arg : args) {
+                command.add(arg);
+            }
+            final ProcessBuilder builder = new ProcessBuilder(command);
+            builder.start();
+            System.exit(0);
+        } catch (URISyntaxException ex) {
+            Logger.getLogger(TehMain.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(TehMain.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

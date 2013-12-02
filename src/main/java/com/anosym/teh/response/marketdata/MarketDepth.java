@@ -7,6 +7,7 @@ package com.anosym.teh.response.marketdata;
 import com.anosym.teh.response.logs.UserLogsResponse;
 import com.anosym.teh.response.marketdata.MarketDepthResponse.BestBuy;
 import com.anosym.teh.response.marketdata.MarketDepthResponse.BestSell;
+import com.anosym.teh.response.util.PriceConverter;
 import com.anosym.vjax.annotations.Markup;
 import com.anosym.vjax.annotations.v3.Converter;
 import java.io.Serializable;
@@ -32,120 +33,200 @@ public class MarketDepth implements Serializable {
     private static final long serialVersionUID = 18472842296L;
     @Id
     @Markup(name = "symbol")
+    @Column(name = "symbol")
     private String symbol;
     @Markup(name = "lasttradedprice")
+    @Column(name = "lasttradedprice")
+    @Converter(PriceConverter.class)
     private BigDecimal lastTradedPrice;
     @Markup(name = "lasttradedqty")
+    @Column(name = "lasttradedqty")
     private int lastTradedQuantity;
     @Markup(name = "lasttradedtime")
     @Converter(UserLogsResponse.CalendarMillisConverter.class)
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    @Column(name = "lasttradedtime")
     private Calendar lastTradedTime;
     @Markup(name = "percentagechange")
+    @Column(name = "percentagechange")
     private int percentageChange;
     @Markup(name = "abschange")
+    @Column(name = "abschange")
     private int absoluteChange;
     @Markup(name = "series")
+    @Column(name = "series")
     private String series;
     @Markup(name = "weightedavg")
+    @Converter(PriceConverter.class)
+    @Column(name = "weightedavg")
     private BigDecimal weightedAverage;
     @Markup(name = "openrate")
+    @Converter(PriceConverter.class)
+    @Column(name = "openrate")
     private BigDecimal openRate;
     @Markup(name = "triggerpercent")
+    @Column(name = "triggerpercent")
     private int triggerPercent;
     @Markup(name = "previouscloserate")
+    @Converter(PriceConverter.class)
+    @Column(name = "previouscloserate")
     private BigDecimal previousCloseRate;
     @Markup(name = "highrate")
+    @Converter(PriceConverter.class)
+    @Column(name = "highrate")
     private BigDecimal highRate;
     @Markup(name = "lowrate")
+    @Converter(PriceConverter.class)
+    @Column(name = "lowrate")
     private BigDecimal lowRate;
     @Markup(name = "trend")
+    @Column(name = "trend")
     private String trend;
     @Markup(name = "volume")
+    @Column(name = "volume")
     private int volume;
     @Markup(name = "totalbuyqty")
+    @Column(name = "totalbuyqty")
     private int totalBuyQuantity;
     @Markup(name = "totalsellqty")
+    @Column(name = "totalsellqty")
     private int totalSellQuantity;
     @Markup(name = "lowercircuitlimit")
+    @Converter(PriceConverter.class)
+    @Column(name = "lowercircuitlimit")
     private BigDecimal lowerCircuitLimit;
     @Markup(name = "highercircuitlimit")
+    @Converter(PriceConverter.class)
+    @Column(name = "highercircuitlimit")
     private BigDecimal higherCircuitLimit;
     @Markup(name = "openinterest")
+    @Column(name = "openinterest")
     private int openInterest;
     @Markup(name = "value")
-    @Column(name = "quote_value")
+    @Column(name = "value")
+    @Converter(PriceConverter.class)
     private BigDecimal value;
     @Markup(name = "yearlyhighprice")
+    @Converter(PriceConverter.class)
+    @Column(name = "yearlyhighprice")
     private BigDecimal yearlyHighPrice;
     @Markup(name = "yearlylowprice")
+    @Converter(PriceConverter.class)
+    @Column(name = "yearlylowprice")
     private BigDecimal yearlyLowPrice;
     @Markup(name = "tradingsymbol")
+    @Column(name = "tradingsymbol")
     private String tradingSymbol;
     @Markup(name = "companyname")
+    @Column(name = "companyname")
     private String companyName;
 
     //best buy
     @Markup(name = "bestbuysize1")
+    @Column(name = "bestbuysize1")
     private int bestBuySize1;
     @Markup(name = "bestbuyprice1")
+    @Column(name = "bestbuyprice1")
+    @Converter(PriceConverter.class)
     private BigDecimal bestBuyPrice1;
     @Markup(name = "bestbuyorders1")
+    @Column(name = "bestbuyorders1")
     private int bestBuyOrders1;
     @Markup(name = "bestbuysize2")
+    @Column(name = "bestbuysize2")
     private int bestBuySize2;
     @Markup(name = "bestbuyprice2")
+    @Column(name = "bestbuyprice2")
+    @Converter(PriceConverter.class)
     private BigDecimal bestBuyPrice2;
     @Markup(name = "bestbuyorders2")
+    @Column(name = "bestbuyorders12")
     private int bestBuyOrders2;
     @Markup(name = "bestbuysize3")
+    @Column(name = "bestbuysize3")
     private int bestBuySize3;
     @Markup(name = "bestbuyprice3")
+    @Column(name = "bestbuyprice3")
+    @Converter(PriceConverter.class)
     private BigDecimal bestBuyPrice3;
     @Markup(name = "bestbuyorders3")
+    @Column(name = "bestbuyorders3")
     private int bestBuyOrders3;
     @Markup(name = "bestbuysize4")
+    @Column(name = "bestbuysize4")
     private int bestBuySize4;
     @Markup(name = "bestbuyprice4")
+    @Column(name = "bestbuyprice4")
+    @Converter(PriceConverter.class)
     private BigDecimal bestBuyPrice4;
     @Markup(name = "bestbuyorders4")
+    @Column(name = "bestbuyorders4")
     private int bestBuyOrders4;
     @Markup(name = "bestbuysize5")
+    @Column(name = "bestbuysize5")
     private int bestBuySize5;
     @Markup(name = "bestbuyprice5")
+    @Column(name = "bestbuyprice5")
+    @Converter(PriceConverter.class)
     private BigDecimal bestBuyPrice5;
     @Markup(name = "bestbuyorders5")
+    @Column(name = "bestbuyorders5")
     private int bestBuyOrders5;
+
     //best sell
     @Markup(name = "bestsellsize1")
+    @Column(name = "bestsellsize1")
     private int bestSellSize1;
     @Markup(name = "bestsellprice1")
+    @Column(name = "bestsellprice1")
+    @Converter(PriceConverter.class)
     private BigDecimal bestSellPrice1;
     @Markup(name = "bestsellorders1")
+    @Column(name = "bestsellorders1")
     private int bestSellOrders1;
+
     @Markup(name = "bestsellsize2")
+    @Column(name = "bestsellsize2")
     private int bestSellSize2;
     @Markup(name = "bestsellprice2")
+    @Column(name = "bestsellprice2")
+    @Converter(PriceConverter.class)
     private BigDecimal bestSellPrice2;
     @Markup(name = "bestsellorders2")
+    @Column(name = "bestsellorders2")
     private int bestSellOrders2;
+
     @Markup(name = "bestsellsize3")
+    @Column(name = "bestsellsize3")
     private int bestSellSize3;
     @Markup(name = "bestsellprice3")
+    @Column(name = "bestsellprice3")
+    @Converter(PriceConverter.class)
     private BigDecimal bestSellPrice3;
     @Markup(name = "bestsellorders3")
+    @Column(name = "bestsellorders3")
     private int bestSellOrders3;
+
     @Markup(name = "bestsellsize4")
+    @Column(name = "bestsellsize4")
     private int bestSellSize4;
     @Markup(name = "bestsellprice4")
+    @Column(name = "bestsellprice4")
+    @Converter(PriceConverter.class)
     private BigDecimal bestSellPrice4;
     @Markup(name = "bestsellorders4")
+    @Column(name = "bestsellorders4")
     private int bestSellOrders4;
+
     @Markup(name = "bestsellsize5")
+    @Column(name = "bestsellsize5")
     private int bestSellSize5;
     @Markup(name = "bestsellprice5")
+    @Column(name = "bestsellprice5")
+    @Converter(PriceConverter.class)
     private BigDecimal bestSellPrice5;
     @Markup(name = "bestsellorders5")
+    @Column(name = "bestsellorders5")
     private int bestSellOrders5;
 
     public void setBestBuys(BestBuy[] bestBuys) {

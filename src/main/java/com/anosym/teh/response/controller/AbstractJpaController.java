@@ -24,22 +24,15 @@ public abstract class AbstractJpaController<T> {
 
     private EntityManagerFactory emf;
     private final Class<T> entityClass;
-    private int reloadTime;
 
     protected AbstractJpaController(Class<T> entityClass) {
         this.entityClass = entityClass;
     }
 
     public final EntityManager getEntityManager() {
-        if (emf == null || reloadTime % 50 == 0) {
-            if (emf != null) {
-                emf.close();
-                emf = null;
-            }
-            reloadTime = 0;
+        if (emf == null) {
             emf = Persistence.createEntityManagerFactory("com.anosym.teh_teh_jar_1.0-SNAPSHOTPU");
         }
-        reloadTime++;
         return emf.createEntityManager();
     }
 

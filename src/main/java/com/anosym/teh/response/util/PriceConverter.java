@@ -25,7 +25,9 @@ public class PriceConverter implements Converter<BigDecimal, String> {
     @Override
     public BigDecimal convertTo(String value) {
         try {
-            if (Utility.isNullOrEmpty(value) || value.equalsIgnoreCase("ato")) {
+            if (Utility.isNullOrEmpty(value)
+                    || value.equalsIgnoreCase("ato")
+                    || value.equalsIgnoreCase("na")) {
                 return BigDecimal.ZERO;
             }
             return new BigDecimal(value.replaceAll("[\\W&&[^\\.]]+", "")).setScale(2, RoundingMode.UP);

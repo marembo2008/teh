@@ -31,10 +31,12 @@ public class UserLogsResponse extends Response {
 
     public static class CalendarMillisConverter implements Converter<Calendar, String> {
 
+        @Override
         public String convertFrom(Calendar value) {
             return (value.getTimeInMillis() / 1000) + "";
         }
 
+        @Override
         public Calendar convertTo(String value) {
             if (Utility.isNullOrEmpty(value) || !Utility.isNumber(value)) {
                 return null;
