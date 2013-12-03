@@ -42,7 +42,8 @@ public class UserLogsResponse extends Response {
                 return null;
             }
             Calendar c = Calendar.getInstance();
-            c.setTimeInMillis(Long.parseLong(value) * 1000);
+            long time = Long.parseLong(value) * 1000;
+            c.setTimeInMillis(time);
             return c;
         }
     }

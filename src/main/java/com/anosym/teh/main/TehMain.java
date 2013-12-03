@@ -7,6 +7,7 @@ package com.anosym.teh.main;
 
 import com.anosym.teh.request.Exchange;
 import com.anosym.teh.request.PostRequest;
+import com.anosym.teh.request.auth.Credential;
 import com.anosym.teh.request.auth.FirstLoginRequest;
 import com.anosym.teh.request.auth.LoginRequest;
 import com.anosym.teh.request.auth.logout.LogoutRequest;
@@ -57,9 +58,7 @@ import java.util.logging.Logger;
  */
 public class TehMain {
 
-    public static final String userId = "INV32-CHND";
-    public static final String password =/* "master12"; /*/ "a123456";
-    public static final String ip = "192.168.0.43";
+    private static Credential credential;
     public static final String token = "8599433655";
     public static final String otpPassword = "";
     private static LoginResponse login;
@@ -69,10 +68,11 @@ public class TehMain {
     private static volatile int last_updated_index;
     private static final Queue<MarketDepth> MARKETDEPTH = new ConcurrentLinkedQueue<MarketDepth>();
     private static final List<PostRequest> REQUESTS = new ArrayList<PostRequest>();
-    private static final int REQUEST_THREADS = 4;
-    private static final int RESPONSE_THREADS = 4;
+    private static final int REQUEST_THREADS = 10;
+    private static final int RESPONSE_THREADS = 200;
     private static final String REQUEST_THREAD_OPTION = "req";
     private static final String RESPONSE_THREAD_OPTION = "res";
+    private static final String CREDENTIAL_FILE = "fl";
     private static final Map<Exchange, List<Scrip>> SCRIPS = new EnumMap<Exchange, List<Scrip>>(Exchange.class);
 
     public static void main(String[] args) {
@@ -85,6 +85,7 @@ public class TehMain {
             for (int i = 0; i < params.length; i++) {
                 exchanges[i] = Exchange.valueOf(params[i].toUpperCase());
             }
+            loadCredentials();
             loadScrips();
             startMarketDepth();
             int requestThreads = REQUEST_THREADS;
@@ -96,7 +97,7 @@ public class TehMain {
                 responseThreads = Integer.parseInt(CommandLineArgument.clParameter(RESPONSE_THREAD_OPTION));
             }
             startRequests(1);
-            startMarketDepthData(responseThreads);
+            startMarketDepthData(1);
             new Thread(new Runnable() {
 
                 @Override
@@ -134,7 +135,6 @@ public class TehMain {
     }
 
     private static void loadScrips() {
-        ScripJpaController sjc = new ScripJpaController();
         for (Exchange ex : exchanges) {
             try {
                 Scrip[] scrips = getScrips(ex);
@@ -156,9 +156,19 @@ public class TehMain {
         login = null;
     }
 
+    private static void loadCredentials() {
+        if (credential == null) {
+            if (CommandLineArgument.hasParameterId(CREDENTIAL_FILE)) {
+                credential = Credential.loadCredential(CommandLineArgument.clParameter(CREDENTIAL_FILE));
+            } else {
+                credential = Credential.loadCredential();
+            }
+        }
+    }
+
     public static boolean doDefaultLogin() {
         if (login == null) {
-            LoginRequest lr = new LoginRequest(userId, password, ip);
+            LoginRequest lr = new LoginRequest(credential.getUserId(), credential.getPassword(), credential.getIp());
             Response r = lr.doRequest();
             if (r instanceof LoginResponse) {
                 login = (LoginResponse) r;
@@ -239,7 +249,7 @@ public class TehMain {
             //get the market data
             for (ADXContract adxc : adxcs) {
                 SecurityInfoRequest sir = new SecurityInfoRequest(
-                        userId, login.getLoginInfo().getLoginToken(), Exchange.NSE, adxc.getSymbol());
+                        credential.getUserId(), login.getLoginInfo().getLoginToken(), Exchange.NSE, adxc.getSymbol());
                 Response r1 = sir.doRequest();
                 System.out.println(r1);
                 if (r1 instanceof SecurityInfoResponse) {
@@ -353,11 +363,6 @@ public class TehMain {
 
             final MarketDepthJpaController mdjc = new MarketDepthJpaController();
 
-            {
-                //Initialize this entity manager.
-                mdjc.getEntityManager();
-            }
-
             @Override
             public void run() {
                 try {
@@ -381,6 +386,10 @@ public class TehMain {
                             md = MARKETDEPTH.poll();
                         }
                         try {
+                            if (md.getLastTradedTime() == null
+                                    || md.getLastTradedTime().get(Calendar.YEAR) == 1970) {
+                                continue;
+                            }
                             mdjc.createOrUpdate(md);
                         } catch (Exception ex) {
                             Logger.getLogger(TehMain.class.getName()).log(Level.SEVERE, null, ex);
@@ -421,7 +430,7 @@ public class TehMain {
             //WE CAN ONLY HAVE TWO TYPES OF EXCHANGE FOR THIS TYPE OF REQUEST.
             for (Exchange e : login.getLoginInfo().getLoginExchange()) {
                 ScripSearchOnTextAndExchangeRequest request = new ScripSearchOnTextAndExchangeRequest(
-                        userId, login.getLoginInfo().getLoginToken(), null, e, null);
+                        credential.getUserId(), login.getLoginInfo().getLoginToken(), null, e, null);
                 Response r = request.doRequest();
                 System.out.println(r);
                 if (r instanceof ScripDataResponse) {
@@ -430,7 +439,7 @@ public class TehMain {
                     List<SecurityInfo> infos = new ArrayList<SecurityInfo>();
                     for (Scrip sd : response.getScrips()) {
                         IntraDayGraphRequest sir = new IntraDayGraphRequest(
-                                userId, login.getLoginInfo().getLoginToken(), sd.getSymbol(), e.name(), null);
+                                credential.getUserId(), login.getLoginInfo().getLoginToken(), sd.getSymbol(), e.name(), null);
                         Response r1 = sir.doRequest();
                         System.out.println(r1);
                         if (r1 instanceof IntraDayGraphResponse) {
@@ -451,27 +460,27 @@ public class TehMain {
     }
 
     public static Response verifyOtpRequest() {
-        OTPVerifyRequest otpvr = new OTPVerifyRequest(userId, password);
+        OTPVerifyRequest otpvr = new OTPVerifyRequest(credential.getUserId(), credential.getPassword());
         Response r = otpvr.doRequest();
         System.out.println(r);
         return r;
     }
 
     public static <T> T initOtpAuthentication() {
-        OTOAuthLoginRequest alr = new OTOAuthLoginRequest(userId, password, ip);
+        OTOAuthLoginRequest alr = new OTOAuthLoginRequest(credential.getUserId(), credential.getPassword(), credential.getIp());
         Response response = alr.doRequest();
         System.out.println(response);
         return (T) response;
     }
 
     public static void sendOtpMailRequest() {
-        OTPSendRequest otpsr = new OTPSendRequest(userId);
+        OTPSendRequest otpsr = new OTPSendRequest(credential.getUserId());
         Response r = otpsr.doRequest();
         System.out.println(r);
     }
 
     public static Response doFirstTimeLogin() {
-        FirstLoginRequest flr = new FirstLoginRequest(userId, password);
+        FirstLoginRequest flr = new FirstLoginRequest(credential.getUserId(), credential.getPassword());
         Response r = flr.doRequest();
         System.out.println(r);
         return r;
