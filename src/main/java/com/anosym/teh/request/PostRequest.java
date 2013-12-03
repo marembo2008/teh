@@ -118,7 +118,7 @@ public abstract class PostRequest {
         return "https://" + siteUrl + (servletUrl.startsWith("/") ? servletUrl : ("/" + servletUrl));
     }
 
-    private String getParameters() {
+    public String getParameters() {
         String params = "";
         for (Entry<String, String> e : postParameters.entrySet()) {
             try {
@@ -140,8 +140,6 @@ public abstract class PostRequest {
         try {
             String urlParameters = getParameters();
             String url_ = getRequestUrl();
-            System.out.println("Request Url: " + url_);
-            System.out.println("Request Parameters (POST): " + urlParameters);
             URL url = new URL(url_);
             connection = (HttpURLConnection) url.openConnection();
             connection.setDoOutput(true);
@@ -152,8 +150,8 @@ public abstract class PostRequest {
             connection.setRequestProperty("charset", "utf-8");
             connection.setRequestProperty("Content-Length", "" + Integer.toString(urlParameters.getBytes().length));
             connection.setUseCaches(false);
-            connection.setConnectTimeout(50000);
-            connection.setReadTimeout(1200000);
+            connection.setConnectTimeout(500000);
+            connection.setReadTimeout(12000000);
             wr = new DataOutputStream(connection.getOutputStream());
             wr.writeBytes(urlParameters);
             wr.flush();

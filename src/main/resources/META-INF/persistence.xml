@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <persistence version="2.0" xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
-  <persistence-unit name="com.anosym.teh_teh_jar_1.0-SNAPSHOTPU" transaction-type="RESOURCE_LOCAL">
+  <persistence-unit 
+      name="com.anosym.teh_teh_jar_1.0-SNAPSHOTPU" transaction-type="RESOURCE_LOCAL">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <class>com.anosym.teh.response.scrip.Scrip</class>
     <class>com.anosym.teh.response.marketdata.SecurityInfo</class>
@@ -13,7 +14,10 @@
       <property name="javax.persistence.jdbc.password" value="qwerty#9999"/>
       <property name="javax.persistence.jdbc.driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
       <property name="javax.persistence.jdbc.user" value="Tradeplus"/>
-      <property name="eclipselink.ddl-generation" value="create-tables"/>
+      <property name="eclipselink.connection-pool.default.initial" value="10"/>
+      <property name="eclipselink.connection-pool.node2.min" value="20"/>
+      <property name="eclipselink.connection-pool.node2.max" value="20"/>
+      <property name="eclipselink.connection-pool.node2.url" value="jdbc:sqlserver://49.50.64.239\TB:1433;databaseName=DirectTradeOther"/>
     </properties>
   </persistence-unit>
 </persistence>

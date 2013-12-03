@@ -6,8 +6,10 @@
 package com.anosym.teh.main;
 
 import com.anosym.teh.request.Exchange;
+import com.anosym.teh.request.PostRequest;
 import com.anosym.teh.request.auth.FirstLoginRequest;
 import com.anosym.teh.request.auth.LoginRequest;
+import com.anosym.teh.request.auth.logout.LogoutRequest;
 import com.anosym.teh.request.auth.otp.OTOAuthLoginRequest;
 import com.anosym.teh.request.auth.otp.OTPSendRequest;
 import com.anosym.teh.request.auth.otp.OTPVerifyRequest;
@@ -39,8 +41,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -60,6 +67,13 @@ public class TehMain {
     private static Exchange[] exchanges;
     private static String[] args;
     private static volatile int last_updated_index;
+    private static final Queue<MarketDepth> MARKETDEPTH = new ConcurrentLinkedQueue<MarketDepth>();
+    private static final List<PostRequest> REQUESTS = new ArrayList<PostRequest>();
+    private static final int REQUEST_THREADS = 4;
+    private static final int RESPONSE_THREADS = 4;
+    private static final String REQUEST_THREAD_OPTION = "req";
+    private static final String RESPONSE_THREAD_OPTION = "res";
+    private static final Map<Exchange, List<Scrip>> SCRIPS = new EnumMap<Exchange, List<Scrip>>(Exchange.class);
 
     public static void main(String[] args) {
         TehMain.args = args;
@@ -71,16 +85,18 @@ public class TehMain {
             for (int i = 0; i < params.length; i++) {
                 exchanges[i] = Exchange.valueOf(params[i].toUpperCase());
             }
-            Thread t = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    while (requestdata) {
-                        doGetQuoteWithMarketDepth();
-                    }
-                }
-            });
-            t.start();
+            loadScrips();
+            startMarketDepth();
+            int requestThreads = REQUEST_THREADS;
+            int responseThreads = RESPONSE_THREADS;
+            if (CommandLineArgument.hasParameterId(REQUEST_THREAD_OPTION)) {
+                requestThreads = Integer.parseInt(CommandLineArgument.clParameter(REQUEST_THREAD_OPTION));
+            }
+            if (CommandLineArgument.hasParameterId(RESPONSE_THREAD_OPTION)) {
+                responseThreads = Integer.parseInt(CommandLineArgument.clParameter(RESPONSE_THREAD_OPTION));
+            }
+            startRequests(1);
+            startMarketDepthData(responseThreads);
             new Thread(new Runnable() {
 
                 @Override
@@ -109,11 +125,41 @@ public class TehMain {
 
     }
 
-    public static boolean doDefaultLoginRequest() {
+    private static void startMarketDepth() {
+        if (doDefaultLogin()) {
+            for (Exchange ex : exchanges) {
+                doGetQuoteWithMarketDepth(ex);
+            }
+        }
+    }
+
+    private static void loadScrips() {
+        ScripJpaController sjc = new ScripJpaController();
+        for (Exchange ex : exchanges) {
+            try {
+                Scrip[] scrips = getScrips(ex);
+                if (scrips != null) {
+                    System.out.println("SCRIPS: " + scrips.length);
+                    SCRIPS.put(ex, Arrays.asList(scrips));
+                }
+            } finally {
+                logout();
+            }
+        }
+    }
+
+    private static void logout() {
+        LogoutRequest request = new LogoutRequest(
+                login.getLoginInfo().getLoginToken(),
+                login.getLoginInfo().getLoginId());
+        System.out.println(request.doRequest());
+        login = null;
+    }
+
+    public static boolean doDefaultLogin() {
         if (login == null) {
             LoginRequest lr = new LoginRequest(userId, password, ip);
             Response r = lr.doRequest();
-//            System.out.println(r);
             if (r instanceof LoginResponse) {
                 login = (LoginResponse) r;
                 return true;
@@ -123,7 +169,7 @@ public class TehMain {
     }
 
     public static void doMarketDataRequest() {
-        if (doDefaultLoginRequest()) {
+        if (doDefaultLogin()) {
             SecurityInfoJpaController sijc = new SecurityInfoJpaController();
             ScripJpaController sjc = new ScripJpaController();
             LoginInfo loginInfo = login.getLoginInfo();
@@ -184,7 +230,7 @@ public class TehMain {
     }
 
     public static void doMarketDataRequestFromADXContracts() {
-        if (doDefaultLoginRequest()) {
+        if (doDefaultLogin()) {
             //WE CAN ONLY HAVE TWO TYPES OF EXCHANGE FOR THIS TYPE OF REQUEST.
 //            Exchange[] scripExchanges = {Exchange.NSE, Exchange.BSE};
 //            ADXContractJpaController adxcjc = new ADXContractJpaController();
@@ -213,12 +259,11 @@ public class TehMain {
     }
 
     public static Scrip[] getScrips(Exchange ex) {
-        if (doDefaultLoginRequest()) {
+        if (doDefaultLogin()) {
             LoginInfo info = login.getLoginInfo();
             ScripSearchOnTextAndExchangeRequest request = new ScripSearchOnTextAndExchangeRequest(
                     info.getLoginId(), info.getLoginToken(), null, ex, null);
             Response r = request.doRequest();
-//            System.out.println(r);
             if (r instanceof ScripDataResponse) {
                 return ((ScripDataResponse) r).getScrips();
             }
@@ -234,7 +279,6 @@ public class TehMain {
                 Exchange.MCX,
                 scrip.getSymbol());
         Response r1 = sir.doRequest();
-//    System.out.println(r1);
         if (r1 instanceof SecurityInfoResponse) {
             SecurityInfoResponse infoResponse = (SecurityInfoResponse) r1;
             return infoResponse.getSecurityInfo();
@@ -242,43 +286,116 @@ public class TehMain {
         return null;
     }
 
-    public static void doGetQuoteWithMarketDepth() {
-        exchanges = exchanges == null ? new Exchange[]{Exchange.MCX, Exchange.NSE, Exchange.NCDEX} : exchanges;
-        for (Exchange exc : exchanges) {
-            Scrip[] scrips = getScrips(exc);
-            if (scrips != null) {
-                MarketDepthJpaController mdjc = new MarketDepthJpaController();
-                LoginInfo info = login.getLoginInfo();
-                for (Scrip sd : scrips) {
-                    try {
-                        MarketDepthRequest mdr = new MarketDepthRequest(
-                                info.getLoginId(),
-                                info.getLoginToken(),
-                                exc,
-                                sd.getSymbol());
-                        Response mdr_ = mdr.doRequest();
-//                        System.out.println(mdr_);
-                        if (mdr_ instanceof MarketDepthResponse) {
-                            MarketDepthResponse mdResponse = (MarketDepthResponse) mdr_;
-                            MarketDepth md = mdResponse.getScripDetail();
-                            if (md.getLastTradedTime() != null && md.getLastTradedTime().get(Calendar.YEAR) > 2000) {
-                                md.setBestBuys(mdResponse.getBestBuys());
-                                md.setBestSells(mdResponse.getBestSells());
-                                mdjc.createOrUpdate(mdResponse.getScripDetail());
-                                last_updated_index++;
-                            }
-                        }
-                    } catch (Exception ex) {
-                    }
-                }
+    public static void doGetQuoteWithMarketDepth(Exchange exc) {
+        System.err.println("Exchange...." + exc);
+        List<Scrip> scrips = SCRIPS.get(exc);
+        System.err.println("Scrips: " + ((scrips != null) ? scrips.size() : 0));
+        if (scrips != null) {
+            for (final Scrip sd : scrips) {
+                REQUESTS.add(new MarketDepthRequest(
+                        login.getLoginInfo().getLoginId(),
+                        login.getLoginInfo().getLoginToken(),
+                        exc,
+                        sd.getSymbol()));
             }
         }
     }
 
+    private static void startRequests(int requestThreads) {
+        System.out.println("Number of REQUESTS: " + requestThreads);
+        int size = REQUESTS.size() / requestThreads;
+        for (int i = 0; i < requestThreads; i++) {
+            handleRequests(i * size, size);
+        }
+    }
+
+    private static void handleRequests(int threadId, final int size) {
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    int i = 0;
+                    for (;;) {
+                        PostRequest pr = REQUESTS.get(i);
+                        Response mdr_ = pr.doRequest();
+                        if (mdr_ instanceof MarketDepthResponse) {
+                            MarketDepthResponse mdResponse = (MarketDepthResponse) mdr_;
+                            MarketDepth md = mdResponse.getScripDetail();
+                            md.setBestBuys(mdResponse.getBestBuys());
+                            md.setBestSells(mdResponse.getBestSells());
+                            MARKETDEPTH.offer(md);
+                            synchronized (MARKETDEPTH) {
+                                MARKETDEPTH.notifyAll();
+                            }
+                            last_updated_index++;
+                        } else {
+                            System.out.println(mdr_);
+                        }
+                        i = (i + 1) % size;
+                    }
+                } finally {
+                    System.out.println("Thread stopped");
+                }
+            }
+        }, "TEH-MDR-" + threadId).start();
+    }
+
+    private static void startMarketDepthData(int responseThreads) {
+        System.out.println("Number of RESPONSE THREADS: " + responseThreads);
+        for (int i = 0; i < responseThreads; i++) {
+            handleMarketDepthData(i);
+        }
+    }
+
+    private static void handleMarketDepthData(int threadId) {
+        new Thread(new Runnable() {
+
+            final MarketDepthJpaController mdjc = new MarketDepthJpaController();
+
+            {
+                //Initialize this entity manager.
+                mdjc.getEntityManager();
+            }
+
+            @Override
+            public void run() {
+                try {
+                    while (true) {
+                        synchronized (MARKETDEPTH) {
+                            while (MARKETDEPTH.isEmpty()) {
+                                try {
+                                    MARKETDEPTH.wait();
+                                } catch (InterruptedException ex) {
+                                    Logger.getLogger(TehMain.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            }
+                        }
+                        MarketDepth md;
+                        synchronized (MARKETDEPTH) {
+                            //several of them might have been woken up at the same time.
+                            if (MARKETDEPTH.isEmpty()) {
+                                continue;
+                            }
+                            System.out.println("Market Depth size: " + MARKETDEPTH.size() + "=" + Thread.currentThread().getName());
+                            md = MARKETDEPTH.poll();
+                        }
+                        try {
+                            mdjc.createOrUpdate(md);
+                        } catch (Exception ex) {
+                            Logger.getLogger(TehMain.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                } finally {
+                    System.out.println("Thread stopped");
+                }
+            }
+        }, "TEH-MD-" + threadId).start();
+    }
+
     public static void doGetQuoteWithMarketDepth_fromADXContracts() {
         List<ADXContract> adxcs = loadADXContracts();
-        if (adxcs != null && doDefaultLoginRequest()) {
-            ScripJpaController sjc = new ScripJpaController();
+        if (adxcs != null && doDefaultLogin()) {
             LoginInfo info = login.getLoginInfo();
             for (ADXContract sd : adxcs) {
                 try {
@@ -300,7 +417,7 @@ public class TehMain {
     }
 
     public static void doIntraDayGraphRequest() {
-        if (doDefaultLoginRequest()) {
+        if (doDefaultLogin()) {
             //WE CAN ONLY HAVE TWO TYPES OF EXCHANGE FOR THIS TYPE OF REQUEST.
             for (Exchange e : login.getLoginInfo().getLoginExchange()) {
                 ScripSearchOnTextAndExchangeRequest request = new ScripSearchOnTextAndExchangeRequest(
