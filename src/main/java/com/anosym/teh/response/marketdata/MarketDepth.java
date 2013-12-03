@@ -74,7 +74,7 @@ public class MarketDepth implements Serializable {
     @Markup(name = "openinterest")
     private int openInterest;
     @Markup(name = "value")
-    @Column(name = "quote_value")
+    @Column(name = "value")
     private BigDecimal value;
     @Markup(name = "yearlyhighprice")
     private BigDecimal yearlyHighPrice;
