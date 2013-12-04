@@ -99,7 +99,6 @@ public abstract class PostRequest {
         try {
             VObjectMarshaller<T> m = new VObjectMarshaller<T>(reponseClass);
             VDocument doc = VDocument.parseDocumentFromString(response);
-            System.out.println(doc.toXmlString());
             return m.unmarshall(doc);
         } catch (VXMLBindingException ex) {
             Logger.getLogger(PostRequest.class.getName()).log(Level.SEVERE, null, ex);

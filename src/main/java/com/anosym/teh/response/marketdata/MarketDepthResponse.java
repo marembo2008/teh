@@ -166,6 +166,7 @@ public class MarketDepthResponse extends Response {
         @Override
         public void onSet(MarketDepthResponse object, BestBuy[] property) {
             Arrays.sort(property);
+            object.getScripDetail().setBestBuys(property);
         }
 
     }
@@ -175,6 +176,7 @@ public class MarketDepthResponse extends Response {
         @Override
         public void onSet(MarketDepthResponse object, BestSell[] property) {
             Arrays.sort(property);
+            object.getScripDetail().setBestSells(property);
         }
 
     }

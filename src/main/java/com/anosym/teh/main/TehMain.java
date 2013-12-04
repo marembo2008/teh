@@ -34,6 +34,8 @@ import com.anosym.teh.response.marketdata.controller.SecurityInfoJpaController;
 import com.anosym.teh.response.scrip.Scrip;
 import com.anosym.teh.response.scrip.ScripDataResponse;
 import com.anosym.teh.response.scrip.controller.ScripJpaController;
+import com.anosym.teh.response.user.UserProfile;
+import com.anosym.teh.response.user.controller.UserProfileJpaController;
 import com.anosym.utilities.cl.CommandLineArgument;
 import java.io.BufferedReader;
 import java.io.File;
@@ -51,6 +53,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.persistence.Persistence;
 
 /**
  *
@@ -96,8 +99,8 @@ public class TehMain {
             if (CommandLineArgument.hasParameterId(RESPONSE_THREAD_OPTION)) {
                 responseThreads = Integer.parseInt(CommandLineArgument.clParameter(RESPONSE_THREAD_OPTION));
             }
-            startRequests(1);
-            startMarketDepthData(1);
+            startRequests(requestThreads);
+            startMarketDepthData(responseThreads);
             new Thread(new Runnable() {
 
                 @Override
@@ -319,21 +322,20 @@ public class TehMain {
         }
     }
 
-    private static void handleRequests(int threadId, final int size) {
+    private static void handleRequests(final int threadId, final int size) {
         new Thread(new Runnable() {
 
             @Override
             public void run() {
                 try {
-                    int i = 0;
-                    for (;;) {
+                    int i = threadId;
+                    int finalPos = threadId + size;
+                    for (; i < finalPos; i++) {
                         PostRequest pr = REQUESTS.get(i);
                         Response mdr_ = pr.doRequest();
                         if (mdr_ instanceof MarketDepthResponse) {
                             MarketDepthResponse mdResponse = (MarketDepthResponse) mdr_;
                             MarketDepth md = mdResponse.getScripDetail();
-                            md.setBestBuys(mdResponse.getBestBuys());
-                            md.setBestSells(mdResponse.getBestSells());
                             MARKETDEPTH.offer(md);
                             synchronized (MARKETDEPTH) {
                                 MARKETDEPTH.notifyAll();
@@ -342,7 +344,9 @@ public class TehMain {
                         } else {
                             System.out.println(mdr_);
                         }
-                        i = (i + 1) % size;
+                        if (i == finalPos) {
+                            i = threadId;
+                        }
                     }
                 } finally {
                     System.out.println("Thread stopped");

@@ -36,7 +36,7 @@ public class MarketDepth implements Serializable {
   @Column(name = "symbol")
   private String symbol;
   @Markup(name = "lasttradedprice")
-  @Column(name = "lasttradedprice")
+  @Column(name = "lasttradedprice", columnDefinition = "DECIMAL(14, 2)")
   @Converter(PriceConverter.class)
   private BigDecimal lastTradedPrice;
   @Markup(name = "lasttradedqty")
@@ -58,26 +58,26 @@ public class MarketDepth implements Serializable {
   private String series;
   @Markup(name = "weightedavg")
   @Converter(PriceConverter.class)
-  @Column(name = "weightedavg")
+  @Column(name = "weightedavg", columnDefinition = "DECIMAL(14, 2)")
   private BigDecimal weightedAverage;
   @Markup(name = "openrate")
   @Converter(PriceConverter.class)
-  @Column(name = "openrate")
+  @Column(name = "openrate", columnDefinition = "DECIMAL(14, 2)")
   private BigDecimal openRate;
   @Markup(name = "triggerpercent")
   @Column(name = "triggerpercent")
   private int triggerPercent;
   @Markup(name = "previouscloserate")
   @Converter(PriceConverter.class)
-  @Column(name = "previouscloserate")
+  @Column(name = "previouscloserate", columnDefinition = "DECIMAL(14, 2)")
   private BigDecimal previousCloseRate;
   @Markup(name = "highrate")
   @Converter(PriceConverter.class)
-  @Column(name = "highrate")
+  @Column(name = "highrate", columnDefinition = "DECIMAL(14, 2)")
   private BigDecimal highRate;
   @Markup(name = "lowrate")
   @Converter(PriceConverter.class)
-  @Column(name = "lowrate")
+  @Column(name = "lowrate", columnDefinition = "DECIMAL(14, 2)")
   private BigDecimal lowRate;
   @Markup(name = "trend")
   @Column(name = "trend")
@@ -93,26 +93,26 @@ public class MarketDepth implements Serializable {
   private int totalSellQuantity;
   @Markup(name = "lowercircuitlimit")
   @Converter(PriceConverter.class)
-  @Column(name = "lowercircuitlimit")
+  @Column(name = "lowercircuitlimit", columnDefinition = "DECIMAL(14, 2)")
   private BigDecimal lowerCircuitLimit;
   @Markup(name = "highercircuitlimit")
   @Converter(PriceConverter.class)
-  @Column(name = "highercircuitlimit")
+  @Column(name = "highercircuitlimit", columnDefinition = "DECIMAL(14, 2)")
   private BigDecimal higherCircuitLimit;
   @Markup(name = "openinterest")
   @Column(name = "openinterest")
   private int openInterest;
   @Markup(name = "value")
-  @Column(name = "value")
+  @Column(name = "value", columnDefinition = "DECIMAL(14, 2)")
   @Converter(PriceConverter.class)
   private BigDecimal value;
   @Markup(name = "yearlyhighprice")
   @Converter(PriceConverter.class)
-  @Column(name = "yearlyhighprice")
+  @Column(name = "yearlyhighprice", columnDefinition = "DECIMAL(14, 2)")
   private BigDecimal yearlyHighPrice;
   @Markup(name = "yearlylowprice")
   @Converter(PriceConverter.class)
-  @Column(name = "yearlylowprice")
+  @Column(name = "yearlylowprice", columnDefinition = "DECIMAL(14, 2)")
   private BigDecimal yearlyLowPrice;
   @Markup(name = "tradingsymbol")
   @Column(name = "tradingsymbol")
@@ -125,7 +125,7 @@ public class MarketDepth implements Serializable {
   @Column(name = "bestbuysize1")
   private int bestBuySize1;
   @Markup(name = "bestbuyprice1")
-  @Column(name = "bestbuyprice1")
+  @Column(name = "bestbuyprice1", columnDefinition = "DECIMAL(14, 2)")
   @Converter(PriceConverter.class)
   private BigDecimal bestBuyPrice1;
   @Markup(name = "bestbuyorders1")
@@ -135,7 +135,7 @@ public class MarketDepth implements Serializable {
   @Column(name = "bestbuysize2")
   private int bestBuySize2;
   @Markup(name = "bestbuyprice2")
-  @Column(name = "bestbuyprice2")
+  @Column(name = "bestbuyprice2", columnDefinition = "DECIMAL(14, 2)")
   @Converter(PriceConverter.class)
   private BigDecimal bestBuyPrice2;
   @Markup(name = "bestbuyorders2")
@@ -145,7 +145,7 @@ public class MarketDepth implements Serializable {
   @Column(name = "bestbuysize3")
   private int bestBuySize3;
   @Markup(name = "bestbuyprice3")
-  @Column(name = "bestbuyprice3")
+  @Column(name = "bestbuyprice3", columnDefinition = "DECIMAL(14, 2)")
   @Converter(PriceConverter.class)
   private BigDecimal bestBuyPrice3;
   @Markup(name = "bestbuyorders3")
@@ -155,7 +155,7 @@ public class MarketDepth implements Serializable {
   @Column(name = "bestbuysize4")
   private int bestBuySize4;
   @Markup(name = "bestbuyprice4")
-  @Column(name = "bestbuyprice4")
+  @Column(name = "bestbuyprice4", columnDefinition = "DECIMAL(14, 2)")
   @Converter(PriceConverter.class)
   private BigDecimal bestBuyPrice4;
   @Markup(name = "bestbuyorders4")
@@ -165,7 +165,7 @@ public class MarketDepth implements Serializable {
   @Column(name = "bestbuysize5")
   private int bestBuySize5;
   @Markup(name = "bestbuyprice5")
-  @Column(name = "bestbuyprice5")
+  @Column(name = "bestbuyprice5", columnDefinition = "DECIMAL(14, 2)")
   @Converter(PriceConverter.class)
   private BigDecimal bestBuyPrice5;
   @Markup(name = "bestbuyorders5")
@@ -176,7 +176,7 @@ public class MarketDepth implements Serializable {
   @Column(name = "bestsellsize1")
   private int bestSellSize1;
   @Markup(name = "bestsellprice1")
-  @Column(name = "bestsellprice1")
+  @Column(name = "bestsellprice1", columnDefinition = "DECIMAL(14, 2)")
   @Converter(PriceConverter.class)
   private BigDecimal bestSellPrice1;
   @Markup(name = "bestsellorders1")
@@ -186,7 +186,7 @@ public class MarketDepth implements Serializable {
   @Column(name = "bestsellsize2")
   private int bestSellSize2;
   @Markup(name = "bestsellprice2")
-  @Column(name = "bestsellprice2")
+  @Column(name = "bestsellprice2", columnDefinition = "DECIMAL(14, 2)")
   @Converter(PriceConverter.class)
   private BigDecimal bestSellPrice2;
   @Markup(name = "bestsellorders2")
@@ -196,7 +196,7 @@ public class MarketDepth implements Serializable {
   @Column(name = "bestsellsize3")
   private int bestSellSize3;
   @Markup(name = "bestsellprice3")
-  @Column(name = "bestsellprice3")
+  @Column(name = "bestsellprice3", columnDefinition = "DECIMAL(14, 2)")
   @Converter(PriceConverter.class)
   private BigDecimal bestSellPrice3;
   @Markup(name = "bestsellorders3")
@@ -206,7 +206,7 @@ public class MarketDepth implements Serializable {
   @Column(name = "bestsellsize4")
   private int bestSellSize4;
   @Markup(name = "bestsellprice4")
-  @Column(name = "bestsellprice4")
+  @Column(name = "bestsellprice4", columnDefinition = "DECIMAL(14, 2)")
   @Converter(PriceConverter.class)
   private BigDecimal bestSellPrice4;
   @Markup(name = "bestsellorders4")
@@ -216,7 +216,7 @@ public class MarketDepth implements Serializable {
   @Column(name = "bestsellsize5")
   private int bestSellSize5;
   @Markup(name = "bestsellprice5")
-  @Column(name = "bestsellprice5")
+  @Column(name = "bestsellprice5", columnDefinition = "DECIMAL(14, 2)")
   @Converter(PriceConverter.class)
   private BigDecimal bestSellPrice5;
   @Markup(name = "bestsellorders5")
